@@ -49,4 +49,8 @@ info:
     description: EazyBank Gateway Application
     version: 1.0.0
 
-
+logging:
+  level:
+    com:
+      socarras:
+        gateway-server: debug
