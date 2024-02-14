@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: gateway-server
+  config:
+    import: optional:configserver:http://localhost:8071/
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+          lowerCaseServiceId: true
+      routes:
+        - id: accounts-service-route
+          uri: lb://ACCOUNTS-SERVICE
+          predicates:
+            - Path=/eazybank/accounts-service/**
+          filters:
+            - RewritePath=/eazybank/accounts-service/(?<segment>.*), /$\{segment}
+
+        - id: loans-service-route
+          uri: lb://LOANS-SERVICE
+          predicates:
+            - Path=/eazybank/loans-service/**
+          filters:
+            - RewritePath=/eazybank/loans-service/(?<segment>.*), /$\{segment}
+
+        - id: cards-service-route
+          uri: lb://CARDS-SERVICE
+          predicates:
+            - Path=/eazybank/cards-service/**
+          filters:
+            - RewritePath=/eazybank/cards-service/(?<segment>.*), /$\{segment}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    gateway:
+      enabled: true
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: gateway-server
+    description: EazyBank Gateway Application
+    version: 1.0.0
+
+logging:
+  level:
+    root: info
