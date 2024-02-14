@@ -51,6 +51,4 @@ info:
 
 logging:
   level:
-    com:
-      socarras:
-        gateway-server: debug
+    root: info

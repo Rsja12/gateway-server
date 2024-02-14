@@ -28,7 +28,7 @@ public class ResponseTraceFilter {
                             .getHeaders()
                             .add(FilterUtility.CORRELATION_ID, correlationId);
 
-                    log.debug("Updated the correlation id to the outbound headers: {}", correlationId);
+                    log.info("Updated the correlation id to the outbound headers: {}", correlationId);
                 }));
     }
 }
