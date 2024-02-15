@@ -79,3 +79,9 @@ resilience4j.circuitbreaker:
   instances:
     accountsServiceCircuitBreaker:
       baseConfig: default
+
+resilience4j.timelimiter:
+  configs:
+    default:
+      timeoutDuration: 4s
+      cancelRunningFuture: true
