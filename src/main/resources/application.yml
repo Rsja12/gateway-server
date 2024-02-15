@@ -15,6 +15,7 @@ spring:
           predicates:
             - Path=/eazybank/accounts-service/**
           filters:
+            - CircuitBreaker=accountsServiceCircuitBreaker
             - RewritePath=/eazybank/accounts-service/(?<segment>.*), /$\{segment}
 
         - id: loans-service-route
@@ -52,3 +53,14 @@ info:
 logging:
   level:
     root: info
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowSize: 10
+      permittedNumberOfCallsInHalfOpenState: 2
+      failureRateThreshold: 50
+      waitDurationInOpenState: 10000
+  instances:
+    accountsServiceCircuitBreaker:
+      baseConfig: default
