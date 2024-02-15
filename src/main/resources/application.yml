@@ -18,11 +18,11 @@ spring:
           predicates:
             - Path=/eazybank/accounts-service/**
           filters:
+            - RewritePath=/eazybank/accounts-service/(?<segment>.*), /$\{segment}
             - name: CircuitBreaker
               args:
                 name: accountsServiceCircuitBreaker
                 fallbackUri: forward:/contact-support
-            - RewritePath=/eazybank/accounts-service/(?<segment>.*), /$\{segment}
 
         - id: loans-service-route
           uri: lb://LOANS-SERVICE
@@ -30,6 +30,15 @@ spring:
             - Path=/eazybank/loans-service/**
           filters:
             - RewritePath=/eazybank/loans-service/(?<segment>.*), /$\{segment}
+            - name: Retry
+              args:
+                retries: 3
+                methods: GET
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 1000ms
+                  factor: 2
+                  basedOnPreviousValue: true
 
         - id: cards-service-route
           uri: lb://CARDS-SERVICE
