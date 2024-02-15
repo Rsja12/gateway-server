@@ -15,7 +15,10 @@ spring:
           predicates:
             - Path=/eazybank/accounts-service/**
           filters:
-            - CircuitBreaker=accountsServiceCircuitBreaker
+            - name: CircuitBreaker
+              args:
+                name: accountsServiceCircuitBreaker
+                fallbackUri: forward:/contact-support
             - RewritePath=/eazybank/accounts-service/(?<segment>.*), /$\{segment}
 
         - id: loans-service-route
