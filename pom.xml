@@ -79,7 +79,7 @@
 				<version>3.4.0</version>
 				<configuration>
 					<to>
-						<image>asocarras/${project.artifactId}:s10</image>
+						<image>asocarras/${project.artifactId}:s11</image>
 					</to>
 				</configuration>
 			</plugin>
