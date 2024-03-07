@@ -3,12 +3,21 @@ spring:
     name: gateway-server
   config:
     import: optional:configserver:http://localhost:8071/
+  data:
+    redis:
+      connect-timeout: 2s
+      host: localhost
+      port: 6379
+      timeout: 1s
   cloud:
     gateway:
       discovery:
         locator:
           enabled: false
           lowerCaseServiceId: true
+      httpclient:
+        connect-timeout: 1000
+        response-timeout: 10s
       routes:
         - id: accounts-service-route
           uri: lb://ACCOUNTS-SERVICE
@@ -16,6 +25,10 @@ spring:
             - Path=/eazybank/accounts-service/**
           filters:
             - RewritePath=/eazybank/accounts-service/(?<segment>.*), /$\{segment}
+            - name: CircuitBreaker
+              args:
+                name: accountsServiceCircuitBreaker
+                fallbackUri: forward:/contact-support
 
         - id: loans-service-route
           uri: lb://LOANS-SERVICE
@@ -23,6 +36,15 @@ spring:
             - Path=/eazybank/loans-service/**
           filters:
             - RewritePath=/eazybank/loans-service/(?<segment>.*), /$\{segment}
+            - name: Retry
+              args:
+                retries: 3
+                methods: GET
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 1000ms
+                  factor: 2
+                  basedOnPreviousValue: true
 
         - id: cards-service-route
           uri: lb://CARDS-SERVICE
@@ -30,6 +52,10 @@ spring:
             - Path=/eazybank/cards-service/**
           filters:
             - RewritePath=/eazybank/cards-service/(?<segment>.*), /$\{segment}
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@redisRateLimiter}"
+                key-resolver: "#{@userKeyResolver}"
 
 management:
   endpoints:
@@ -42,6 +68,9 @@ management:
   info:
     env:
       enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 info:
   app:
@@ -52,3 +81,22 @@ info:
 logging:
   level:
     root: info
+  pattern:
+    level: "%5p[${spring.application.name},%X{trace_id},%X{span_id}]"
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowSize: 10
+      permittedNumberOfCallsInHalfOpenState: 2
+      failureRateThreshold: 50
+      waitDurationInOpenState: 10000
+  instances:
+    accountsServiceCircuitBreaker:
+      baseConfig: default
+
+resilience4j.timelimiter:
+  configs:
+    default:
+      timeoutDuration: 4s
+      cancelRunningFuture: true
